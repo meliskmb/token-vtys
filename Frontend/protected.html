@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Korumalı Sayfa</title>
+</head>
+<body>
+  <h2>Korumalı Sayfa</h2>
+  <button id="get-data-btn">Veriye Eriş</button>
+  <button id="logout-btn">Çıkış Yap</button>
+
+  <p id="result"></p>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const result = document.getElementById('result');
+
+    document.getElementById('get-data-btn').addEventListener('click', async () => {
+      if (!token) {
+        result.textContent = "Token yok, lütfen giriş yapın.";
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/protected', {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          result.textContent = data.message;
+        } else {
+          result.textContent = data.message + " Giriş sayfasına yönlendiriliyorsunuz...";
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        }
+      } catch (err) {
+        result.textContent = 'Sunucuya erişilemedi.';
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>
