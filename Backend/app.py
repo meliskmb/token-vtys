@@ -67,3 +67,37 @@ def login():
     return jsonify({'token': token}), 200
 
 from functools import wraps
+# token kontrol fonksiyonu
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+
+        if not token:
+            return jsonify({'message': 'Token eksik.'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = User.query.get(data['user_id'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token süresi dolmuş.'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Geçersiz token.'}), 401
+
+        return f(current_user, *args, **kwargs)
+    return decorated
+
+@app.route('/protected', methods=['GET'])
+@token_required
+def protected(current_user):
+    return jsonify({
+        'message': f"Hoş geldin, {current_user.email}! Burası korumalı alan."
+    })
+
+if _name_ == '_main_':
+    app.run(debug=True)
