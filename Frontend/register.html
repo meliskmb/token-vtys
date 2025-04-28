@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kayıt Ol</title>
+</head>
+<body>
+  <h2>Kayıt Ol</h2>
+  <form id="register-form">
+    <label>Email:</label><br>
+    <input type="email" id="email" required><br><br>
+
+    <label>Şifre:</label><br>
+    <input type="password" id="password" required><br><br>
+
+    <button type="submit">Kayıt Ol</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    const form = document.getElementById('register-form');
+    const msg = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('http://localhost:5000/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          msg.textContent = 'Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...';
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        } else {
+          msg.textContent = data.message;
+        }
+      } catch (err) {
+        msg.textContent = 'Bir hata oluştu. Sunucuya ulaşılamıyor.';
+      }
+    });
+  </script>
+</body>
+</html>
